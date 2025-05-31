@@ -1,10 +1,15 @@
-
 import React, { useState } from 'react';
 import { Phone, Mail, MapPin, Linkedin, Github } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-const Contact = () => {
-  const [formData, setFormData] = useState({
+interface FormData {
+  name: string;
+  email: string;
+  message: string;
+}
+
+const Contact: React.FC = () => {
+  const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
     message: ''
@@ -12,7 +17,9 @@ const Contact = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
@@ -28,16 +35,14 @@ const Contact = () => {
       });
       return false;
     }
-    
     if (!formData.email.trim()) {
       toast({
-        title: "Error", 
+        title: "Error",
         description: "Please enter your email",
         variant: "destructive"
       });
       return false;
     }
-    
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       toast({
@@ -47,7 +52,6 @@ const Contact = () => {
       });
       return false;
     }
-    
     if (!formData.message.trim()) {
       toast({
         title: "Error",
@@ -56,26 +60,33 @@ const Contact = () => {
       });
       return false;
     }
-    
     return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!validateForm()) return;
-    
     setIsSubmitting(true);
-    
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "Message Sent!",
-        description: "Thank you for your message. I'll get back to you soon!",
+      const res = await fetch("http://localhost:5000/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
       });
-      
-      setFormData({ name: '', email: '', message: '' });
+      const data = await res.json();
+      if (data.success) {
+        toast({
+          title: "Message Sent!",
+          description: "Thank you for your message. I'll get back to you soon!",
+        });
+        setFormData({ name: '', email: '', message: '' });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to send message. Please try again.",
+          variant: "destructive"
+        });
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -104,7 +115,6 @@ const Contact = () => {
           <div className="space-y-6">
             <div>
               <h2 className="text-3xl font-bold text-white mb-6">Contact Information</h2>
-              
               <div className="space-y-4">
                 <div className="flex items-center space-x-4 bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-700/50">
                   <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-3 rounded-full">
@@ -115,7 +125,6 @@ const Contact = () => {
                     <p className="text-[1.1em] text-gray-300">+91 8838919004</p>
                   </div>
                 </div>
-
                 <div className="flex items-center space-x-4 bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-700/50">
                   <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-3 rounded-full">
                     <Mail className="w-6 h-6 text-white" />
@@ -125,7 +134,6 @@ const Contact = () => {
                     <p className="text-[0.98em] text-gray-300">rhmohammedfarook@gmail.com</p>
                   </div>
                 </div>
-
                 <div className="flex items-center space-x-4 bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-700/50">
                   <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-3 rounded-full">
                     <MapPin className="w-6 h-6 text-white" />
@@ -137,7 +145,6 @@ const Contact = () => {
                 </div>
               </div>
             </div>
-
             <div>
               <h3 className="text-2xl font-bold text-white mb-4">Professional Links</h3>
               <div className="space-y-3">
@@ -150,7 +157,6 @@ const Contact = () => {
                   <Linkedin className="w-8 h-6 text-blue-500" />
                   <span className="text-[1.2em] text-gray-300">LinkedIn Profile</span>
                 </a>
-                
                 <a 
                   href="https://github.com/MohammedFarookRH" 
                   target="_blank" 
@@ -163,11 +169,9 @@ const Contact = () => {
               </div>
             </div>
           </div>
-
           {/* Contact Form */}
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-8 border border-gray-700/50">
             <h2 className="text-2xl font-bold text-white mb-6">Send a Message</h2>
-            
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="name" className="text-[1.1em] block text-gray-300 mb-2">Name</label>
@@ -181,7 +185,6 @@ const Contact = () => {
                   className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all duration-300"
                 />
               </div>
-
               <div>
                 <label htmlFor="email" className="text-[1.1em] block text-gray-300 mb-2">Email</label>
                 <input
@@ -194,7 +197,6 @@ const Contact = () => {
                   className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all duration-300"
                 />
               </div>
-
               <div>
                 <label htmlFor="message" className="text-[1.1em] block text-gray-300 mb-2">Message</label>
                 <textarea
@@ -207,7 +209,6 @@ const Contact = () => {
                   className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all duration-300 resize-none"
                 />
               </div>
-
               <button
                 type="submit"
                 disabled={isSubmitting}
