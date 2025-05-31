@@ -1,36 +1,48 @@
 import express from "express";
 import nodemailer from "nodemailer";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Serve static files from the React app (after build)
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+app.use(express.static(path.join(__dirname, "dist")));
+
+// Contact API endpoint
 app.post("/api/contact", async (req, res) => {
   const { name, email, message } = req.body;
 
-  // Configure your SMTP transporter (use real credentials in production)
+  // Use environment variables for credentials
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-      user: "rhmohammedfarook@gmail.com",
-      pass: "cgjipmaqfvzkbtbw", // Use an App Password, not your real password
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS, // Use an App Password, not your real password
     },
   });
 
   try {
     await transporter.sendMail({
       from: email,
-      to: "rhmohammedfarook@gmail.com",
+      to: process.env.EMAIL_USER,
       subject: `Contact Form Message from ${name}`,
       text: message,
       replyTo: email,
     });
     res.status(200).json({ success: true, message: "Message sent!" });
-    } catch (error) {
-    console.log(error); // <-- Add this line to log the real error in your terminal
+  } catch (error) {
+    console.log(error);
     res.status(500).json({ success: false, message: "Failed to send message." });
   }
+});
+
+// Serve React app for all other routes
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 
 const PORT = process.env.PORT || 5000;
